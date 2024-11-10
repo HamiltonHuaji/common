@@ -296,3 +296,24 @@ def bgr_to_rgb(image: torch.Tensor):
     assert image.size("bgr") >= 3
     image = image.rename(None)[..., [2, 1, 0]].refine_names(*names[:-1], "rgb")
     return image
+
+def vector_to_point(v: torch.Tensor):
+    """
+    v: torch.Tensor, [..., 3]
+
+    return: torch.Tensor, [..., 4]
+    """
+    assert v.size(-1) == 3
+    return torch.cat([v, torch.ones_like(v[..., :1])], dim=-1)
+
+def point_to_vector(p: torch.Tensor):
+    """
+    p: torch.Tensor, [..., 4]
+
+    return: torch.Tensor, [..., 3]
+    """
+    assert p.size(-1) == 4
+    return p[..., :3]
+
+def all_equal(x: List[T]) -> bool:
+    return len(x) == 0 or all(x[0] == e for e in x)
