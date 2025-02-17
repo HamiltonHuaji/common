@@ -1,6 +1,6 @@
 from common.imports import *
 
-def pink_noise(*, height, width, channels=3, alpha=1.0):
+def pink_noise(*, height, width, channels=3, alpha=1.0, samples=None):
     """
     size: int, size of noise
     alpha: float, 1.0 is pink noise, 2.0 is brown noise
@@ -8,7 +8,8 @@ def pink_noise(*, height, width, channels=3, alpha=1.0):
     return: torch.Tensor, [size]
     """
     # Generate white noise
-    samples = torch.randn(height, width, channels)
+    if samples is None:
+        samples = torch.randn(height, width, channels)
 
     # Compute Fourier Transform
     spectrum = torch.fft.fftn(samples, dim=(0, 1))
@@ -39,3 +40,16 @@ def unit_rand3(batch_size=(), *, device=None):
     y = torch.sin(theta) * torch.sin(phi)
     z = torch.cos(theta)
     return torch.stack([x, y, z], dim=-1)
+
+def sample_with_prob(probs: Dict[Any, float], normalize=False):
+    # probs: {item: prob}
+    if normalize:
+        total = sum(probs.values())
+        probs = {k: v / total for k, v in probs.items()}
+    cumprobs = np.cumsum(list(probs.values()))
+    cumprobs = {k: v for k, v in zip(probs.keys(), cumprobs)}
+    r = np.random.rand()
+    for k, v in cumprobs.items():
+        if r <= v:
+            return k
+    return None

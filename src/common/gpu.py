@@ -27,6 +27,7 @@ def lock_device(device, *, margin_size = 128 * 1024 * 1024):
             gc.collect()
         except Exception as e:
             print(f"Warning: failed to lock device: {e}")
+            gc.collect()
     else:
         print("Warning: not enough memory (less than margin_size)")
 
