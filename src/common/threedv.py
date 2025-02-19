@@ -3,8 +3,31 @@ All about 3D Vision
 """
 
 from common.imports import *
-from jaxtyping import jaxtyped, Array, Float, Bool
+from jaxtyping import jaxtyped, Array, Float, Bool, Integer, Shaped
 from typeguard import typechecked as typechecker
+
+@jaxtyped(typechecker=typechecker)
+def mask_axis_aligned_bbox(mask: Bool[torch.Tensor, '... h w']) -> Integer[torch.Tensor, '... 4']:
+    """
+    Get the axis-aligned bounding box of the pixels where the mask is True.
+
+    Args:
+        mask: mask of shape (..., h, w)
+
+    Returns:
+        axis-aligned bounding box of shape (..., 4), where the last dimension is (y_min, x_min, y_max, x_max)
+    """
+    # y_min, x_min, y_max, x_max = mask_axis_aligned_bbox(traffic_light_mask.squeeze(0)).tolist()
+    # plt.imshow(traffic_light_mask.expand(3, -1, -1).permute(1, 2, 0).float().cpu().numpy())
+    # plt.gca().add_patch(plt.Rectangle((x_min, y_min), x_max - x_min, y_max - y_min, edgecolor='r', facecolor='none'))
+    with mask.device:
+        mask_squeeze_w = mask.any(dim=-1).to(torch.int8)
+        mask_squeeze_h = mask.any(dim=-2).to(torch.int8)
+        x_min = mask_squeeze_h.argmax(dim=-1)
+        x_max = mask.size(-1) - mask_squeeze_h.flip(dims=(-1,)).argmax(dim=-1) - 1
+        y_min = mask_squeeze_w.argmax(dim=-1)
+        y_max = mask.size(-2) - mask_squeeze_w.flip(dims=(-1,)).argmax(dim=-1) - 1
+        return torch.stack([y_min, x_min, y_max, x_max], dim=-1)
 
 @jaxtyped(typechecker=typechecker)
 def quaternion_to_matrix(wxyz: Float[torch.Tensor, '*batch 4']) -> Float[torch.Tensor, '*batch 3 3']:
