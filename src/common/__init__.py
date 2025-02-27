@@ -73,6 +73,14 @@ def to_tensor(x):
         return x
     elif isinstance(x, np.ndarray):
         return torch.from_numpy(x)
+    elif isinstance(x, dict):
+        return {k: to_tensor(v) for k, v in x.items()}
+    elif isinstance(x, list):
+        return [to_tensor(v) for v in x]
+    elif isinstance(x, tuple):
+        return tuple(to_tensor(v) for v in x)
+    elif isinstance(x, (float, int, bool)):
+        return torch.tensor(x)
     else:
         return torch.tensor(x)
 

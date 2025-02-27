@@ -3,14 +3,15 @@ import plyfile
 import numpy as np
 from plyfile import PlyData, PlyElement
 from pathlib import Path
+from jaxtyping import *
 
 from common.tensor import split_tensor, expand_to
 
-def store_ply(path, xyz, rgb):
+def store_ply(path, xyz: Float[torch.Tensor, 'n 3'], rgb: Float[torch.Tensor, 'n 3']):
     if isinstance(xyz, torch.Tensor):
-        xyz = xyz.detach().cpu().numpy()
+        xyz = xyz.detach().float().cpu().numpy()
     if isinstance(rgb, torch.Tensor):
-        rgb = rgb.detach().cpu().numpy()
+        rgb = rgb.detach().float().cpu().numpy()
 
     valid_fp = lambda x: ~np.isnan(x) & ~np.isinf(x)
     valid_mask = valid_fp(xyz).all(axis=-1) & valid_fp(rgb).all(axis=-1) # xyz, rgb must be both valid
@@ -68,13 +69,13 @@ def store_3dgs(path: Path, *, means, quats, scales, opacities, shs, camera_posit
     dtype_full = [(attribute, 'f4') for attribute in l]
     elements = np.empty(means.size(0), dtype=dtype_full)
 
-    print(f"means.shape={means.shape}")
-    print(f"view_dependent_normals.shape={view_dependent_normals.shape}")
-    print(f"shs_dc.shape={shs_dc.shape}")
-    print(f"shs_rest.shape={shs_rest.shape}")
-    print(f"opacities.shape={opacities.shape}")
-    print(f"scales.shape={scales.shape}")
-    print(f"quats.shape={quats.shape}")
+    # print(f"means.shape={means.shape}")
+    # print(f"view_dependent_normals.shape={view_dependent_normals.shape}")
+    # print(f"shs_dc.shape={shs_dc.shape}")
+    # print(f"shs_rest.shape={shs_rest.shape}")
+    # print(f"opacities.shape={opacities.shape}")
+    # print(f"scales.shape={scales.shape}")
+    # print(f"quats.shape={quats.shape}")
 
     attributes = torch.cat([
         means, view_dependent_normals, shs_dc, shs_rest, opacities, scales, quats

@@ -6,6 +6,20 @@ from common.imports import *
 from jaxtyping import jaxtyped, Array, Float, Bool, Integer, Shaped
 from typeguard import typechecked as typechecker
 
+def with_intrinsics_crop(image, intrinsics, top: int, left: int, height: int, width: int, dim_indexing='b c h w'):
+    if image.ndim == 3:
+        image = image.unsqueeze(0)
+    if dim_indexing != 'b c h w':
+        image = rearrange(image, f'{dim_indexing} -> b c h w')
+    b, c, h, w = image.shape
+
+    image = torchvision.transforms.functional.crop(image, top, left, height, width)
+    intrinsics = intrinsics.clone()
+    intrinsics[..., 0, 2] -= left
+    intrinsics[..., 1, 2] -= top
+
+    return rearrange(image, f'b c h w -> {dim_indexing}'), intrinsics
+
 @jaxtyped(typechecker=typechecker)
 def mask_axis_aligned_bbox(mask: Bool[torch.Tensor, '... h w']) -> Integer[torch.Tensor, '... 4']:
     """
@@ -190,6 +204,50 @@ def rigid_registration(
     
 #     return best_solution, best_inlines
 
+@torch.no_grad()
+def run_trellis(
+    self,
+    image: Float[torch.Tensor, 'b c 518 518'],
+    num_samples: int = 1,
+    seed: int = 42,
+    sparse_structure_sampler_params: dict = {},
+    slat_sampler_params: dict = {},
+    formats: List[str] = ['mesh', 'gaussian', 'radiance_field'],
+) -> dict:
+    with self.device, torch.cuda.device(self.device.index):
+        cond = self.get_cond(image)
+        torch.manual_seed(seed)
+        coords = self.sample_sparse_structure(cond, num_samples, sparse_structure_sampler_params)
+        slat = self.sample_slat(cond, coords, slat_sampler_params)
+        return self.decode_slat(slat, formats)
+
+def moge_depth(
+    moge,
+    image: torch.Tensor, 
+    fov_x: Union[Number, torch.Tensor] = None,
+    mini_batch_size: int = 8,
+    padding_depth: float = None,
+    **kwargs
+):
+    if image.ndim == 3:
+        results = moge.infer(image, force_projection, resolution_level, apply_mask, fov_x)
+    else:
+        masks = []
+        depths = []
+        batch_size = image.shape[0]
+        if isinstance(fov_x, Number):
+            fov_x = torch.tensor(fov_x, device=image.device).expand(batch_size)
+        for i in range(0, batch_size, mini_batch_size):
+            outputs = moge.infer(image=image[i:i+mini_batch_size], fov_x=fov_x[i:i+mini_batch_size], **kwargs)
+            masks.append(outputs['mask'])
+            depths.append(outputs['depth'])
+        results = {
+            'mask': torch.cat(masks, dim=0),
+            'depth': torch.cat(depths, dim=0),
+        }
+    if padding_depth is not None:
+        results['depth'] = torch.where(results['mask'] > 0.5, results['depth'], padding_depth)
+    return results
 
 def raft_flow(raft, *args, **kwargs) -> Float[Array, "b 3 h w"]:
     with torch.inference_mode():

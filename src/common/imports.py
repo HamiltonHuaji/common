@@ -32,6 +32,7 @@ from collections import OrderedDict
 
 # clean code & typing
 from typing import *
+from numbers import Number, Complex, Real, Rational, Integral
 from pathlib import Path
 from omegaconf import OmegaConf
 from dataclasses import dataclass, field, asdict
