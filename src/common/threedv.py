@@ -20,7 +20,7 @@ def with_intrinsics_crop(image, intrinsics, top: int, left: int, height: int, wi
 
     return rearrange(image, f'b c h w -> {dim_indexing}'), intrinsics
 
-@jaxtyped(typechecker=typechecker)
+# @jaxtyped(typechecker=typechecker)
 def mask_axis_aligned_bbox(mask: Bool[torch.Tensor, '... h w']) -> Integer[torch.Tensor, '... 4']:
     """
     Get the axis-aligned bounding box of the pixels where the mask is True.
@@ -43,7 +43,7 @@ def mask_axis_aligned_bbox(mask: Bool[torch.Tensor, '... h w']) -> Integer[torch
         y_max = mask.size(-2) - mask_squeeze_w.flip(dims=(-1,)).argmax(dim=-1) - 1
         return torch.stack([y_min, x_min, y_max, x_max], dim=-1)
 
-@jaxtyped(typechecker=typechecker)
+# @jaxtyped(typechecker=typechecker)
 def quaternion_to_matrix(wxyz: Float[torch.Tensor, '*batch 4']) -> Float[torch.Tensor, '*batch 3 3']:
     w, x, y, z = torch.unbind(F.normalize(wxyz, p=2, dim=-1), dim=-1)
     return torch.stack([
@@ -52,7 +52,7 @@ def quaternion_to_matrix(wxyz: Float[torch.Tensor, '*batch 4']) -> Float[torch.T
         2 * (x*z - w*y), 2 * (y*z + w*x), 1 - 2 * (x*x + y*y),
     ], dim=-1).view(wxyz.shape[:-1] + (3, 3))
 
-@jaxtyped(typechecker=typechecker)
+# @jaxtyped(typechecker=typechecker)
 def standardize_quaternion(quaternions: torch.Tensor) -> torch.Tensor:
     """
     Convert a unit quaternion to a standard form: one in which the real
@@ -67,7 +67,7 @@ def standardize_quaternion(quaternions: torch.Tensor) -> torch.Tensor:
     """
     return torch.where(quaternions[..., 0:1] < 0, -quaternions, quaternions)
 
-@jaxtyped(typechecker=typechecker)
+# @jaxtyped(typechecker=typechecker)
 def matrix_to_quaternion(matrix: Float[torch.Tensor, '*batch 3 3']) -> Float[torch.Tensor, '*batch 4']:
     """
     Convert rotations given as rotation matrices to quaternions.

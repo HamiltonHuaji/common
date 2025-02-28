@@ -1,17 +1,49 @@
-[tool.poetry]
+[project]
 name = "common"
 version = "0.1.0"
 description = ""
-authors = ["Zhang Yuhao <zhangyuhao415@gmail.com>"]
+authors = [
+    { name = "Zhang Yuhao", email = "zhangyuhao415@gmail.com" }
+]
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-expression = "^5.3.0"
-tqdm = "^4.66.6"
-xarray = "^2024.10.0"
-
+requires-python = ">=3.10"
+dependencies = [
+    "expression>=5.3.0",
+    "tqdm>=4.66.6",
+    "xarray>=2024.10.0",
+    "torch",
+    "torchvision",
+    "imageio",
+    "einops",
+    "matplotlib",
+    "ipdb",
+    "jaxtyping",
+    "omegaconf",
+    "IPython",
+    "gsplat",
+    "plyfile",
+    "typeguard",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+# [tool.poetry]
+# name = "common"
+# version = "0.1.0"
+# description = ""
+# authors = ["Zhang Yuhao <zhangyuhao415@gmail.com>"]
+# readme = "README.md"
+
+# [tool.poetry.dependencies]
+# python = "^3.10"
+# expression = "^5.3.0"
+# tqdm = "^4.66.6"
+# xarray = "^2024.10.0"
+
+
+# [build-system]
+# requires = ["poetry-core"]
+# build-backend = "poetry.core.masonry.api"
