@@ -3,7 +3,7 @@ All about 3D Vision
 """
 
 from common.imports import *
-from jaxtyping import jaxtyped, Array, Float, Bool, Integer, Shaped
+from jaxtyping import jaxtyped, Float, Bool, Integer, Shaped
 from typeguard import typechecked as typechecker
 
 def with_intrinsics_crop(image, intrinsics, top: int, left: int, height: int, width: int, dim_indexing='b c h w'):
@@ -138,11 +138,11 @@ def matrix_to_quaternion(matrix: Float[torch.Tensor, '*batch 3 3']) -> Float[tor
     return standardize_quaternion(out)
 
 def rigid_registration(
-    p: Float[Array, '*point 3'],
-    q: Float[Array, '*point 3'],
-    w: Optional[Float[Array, '*point']] = None,
+    p: Float[torch.Tensor, '*point 3'],
+    q: Float[torch.Tensor, '*point 3'],
+    w: Optional[Float[torch.Tensor, '*point']] = None,
     eps: float = 1e-12
-) -> Tuple[Float[Array, ''], Float[Array, '3 3'], Float[Array, '3']]:
+) -> Tuple[Float[torch.Tensor, ''], Float[torch.Tensor, '3 3'], Float[torch.Tensor, '3']]:
 
     with p.device:
         q = q.to(p)
@@ -249,13 +249,13 @@ def moge_depth(
         results['depth'] = torch.where(results['mask'] > 0.5, results['depth'], padding_depth)
     return results
 
-def raft_flow(raft, *args, **kwargs) -> Float[Array, "b 3 h w"]:
+def raft_flow(raft, *args, **kwargs) -> Float[torch.Tensor, "b 3 h w"]:
     with torch.inference_mode():
         raft_result = raft(*args, **kwargs)
     mask = torch.ones_like(raft_result['final'][:, 0:1, :, :])
     return torch.cat([raft_result['final'], mask], dim=1)
 
-def backward_warp(image: Float[Array, "b h w c"], flow: Float[Array, "b 3 h w"], dim_indexing='b h w c'):
+def backward_warp(image: Float[torch.Tensor, "b h w c"], flow: Float[torch.Tensor, "b 3 h w"], dim_indexing='b h w c'):
     """
     Backward warp an image using given flow. The pixel value at (y, x) in the warped image is the value at (y + flow[0][1, y, x], x + flow[1][0, y, x]) in the original image.
 

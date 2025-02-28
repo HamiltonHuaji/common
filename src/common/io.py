@@ -8,6 +8,8 @@ from jaxtyping import *
 from common.tensor import split_tensor, expand_to
 
 def store_ply(path, xyz: Float[torch.Tensor, 'n 3'], rgb: Float[torch.Tensor, 'n 3']):
+    xyz = xyz.reshape(-1, 3)
+    rgb = rgb.reshape(-1, 3)
     if isinstance(xyz, torch.Tensor):
         xyz = xyz.detach().float().cpu().numpy()
     if isinstance(rgb, torch.Tensor):
