@@ -31,14 +31,25 @@ def store_ply(path, xyz: Float[torch.Tensor, 'n 3'], rgb: Float[torch.Tensor, 'n
     ply_data = PlyData([vertex_element])
     ply_data.write(path)
 
-def store_3dgs(path: Path, *, means, quats, scales, opacities, shs, camera_position=None):
+def store_3dgs(path: Path, *, means, quats, scales, opacities, shs, colors=None, sh_degree=3, camera_position=None, sample_prob=None):
     path = Path(path)
 
     if opacities.ndim == 1:
         opacities = opacities.unsqueeze(-1)
     
+    if colors is not None:
+        shs = colors[:, None, :]
+        shs = torch.cat([
+            shs,
+            torch.zeros_like(shs).expand(-1, (sh_degree + 1) ** 2 - 1, -1)
+        ], dim=1)
+
     if shs.ndim == 3:
-        shs = shs.flatten()
+        shs = shs.flatten(start_dim=1, end_dim=-1) # ?
+
+    if sample_prob is not None:
+        sample_idx = torch.randperm(means.size(0))[:int(means.size(0) * sample_prob)]
+        means, quats, scales, opacities, shs = map(lambda x: x[sample_idx], [means, quats, scales, opacities, shs])
 
     if camera_position is not None:
         assert camera_position.size() == (3,)

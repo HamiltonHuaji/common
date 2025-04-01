@@ -66,3 +66,14 @@ else:
     tqdm = functools.partial(tqdm, dynamic_ncols=True)
     trange = functools.partial(trange, dynamic_ncols=True)
 
+
+def is_notebook():
+    import sys
+    try:
+        get_ipython = sys.modules['IPython'].get_ipython
+        if 'IPKernelApp' not in get_ipython().config:  # pragma: no cover
+            return False
+    except Exception:
+        return False
+    else:  # pragma: no cover
+        return True

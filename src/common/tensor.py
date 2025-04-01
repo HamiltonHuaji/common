@@ -5,6 +5,8 @@ import math
 from einops import einsum, rearrange
 
 def to_device(x, device):
+    if device is None:
+        return x # Work as no-op
     if isinstance(x, torch.Tensor):
         return x.to(device)
     elif isinstance(x, dict):
@@ -19,6 +21,26 @@ def to_device(x, device):
             return x_ # not in place
         else:
             return x # in place
+    else:
+        return x
+
+def to_dtype(x, dtype):
+    if dtype is None:
+        return x
+    if isinstance(x, torch.Tensor):
+        return x.to(dtype)
+    elif isinstance(x, dict):
+        return {k: to_dtype(v, dtype) for k, v in x.items()}
+    elif isinstance(x, list):
+        return [to_dtype(v, dtype) for v in x]
+    elif isinstance(x, tuple):
+        return tuple(to_dtype(v, dtype) for v in x)
+    elif hasattr(x, "to"):
+        x_ = x.to(dtype)
+        if x_ is not None:
+            return x_
+        else:
+            return x
     else:
         return x
 
