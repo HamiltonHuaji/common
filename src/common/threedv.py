@@ -4,7 +4,7 @@ All about 3D Vision
 
 from common.imports import *
 from jaxtyping import jaxtyped, Float, Bool, Integer, Shaped
-from typeguard import typechecked as typechecker
+# from typeguard import typechecked as typechecker
 
 def with_intrinsics_crop(image, intrinsics, top: int, left: int, height: int, width: int, dim_indexing='b c h w'):
     if image.ndim == 3:
