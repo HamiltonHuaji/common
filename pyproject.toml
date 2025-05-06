@@ -27,7 +27,7 @@ dependencies = [
     # add following to ~/.gitconfig to accelerate the repository cloning in China
     # [url "https://ghproxy.net/https://github.com/"]
     # insteadOf = https://github.com/
-    "git+https://github.com/nerfstudio-project/gsplat.git"
+    "git+https://github.com/nerfstudio-project/gsplat.git",
 ]
 
 [build-system]
