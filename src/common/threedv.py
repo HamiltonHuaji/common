@@ -249,6 +249,14 @@ def moge_depth(
         results['depth'] = torch.where(results['mask'] > 0.5, results['depth'], padding_depth)
     return results
 
+def get_raft():
+    from sea_raft import RAFTArgs, RAFT
+    raft_url = "MemorySlices/Tartan-C-T-TSKH-kitti432x960-M"
+    raft_args = RAFTArgs.from_pretrained(raft_url)
+    raft = RAFT.from_pretrained(raft_url, args=raft_args)
+    raft.eval()
+    return raft
+
 def raft_flow(raft, *args, **kwargs) -> Float[torch.Tensor, "b 3 h w"]:
     with torch.inference_mode():
         raft_result = raft(*args, **kwargs)
@@ -297,6 +305,28 @@ def compose_flow(flow1, flow2):
     composed_mask = torch.minimum(torch.minimum(flow1[:, 2:3, ...], warped_flow[:, 2:3, ...]), mask[:, None, ...])
 
     return torch.cat([composed_flow, composed_mask], dim=1)
+
+def get_crocoflow(checkpoint_path):
+    with torch.device('cpu'):
+        from croco.models.croco_downstream import CroCoDownstreamBinocular
+        from croco.models.head_downstream import PixelwiseTaskWithDPT
+        checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
+        head = PixelwiseTaskWithDPT()
+        head.num_channels = 3  # flow任务固定为2通道+1置信度
+        model = CroCoDownstreamBinocular(head, **checkpoint['args'].croco_args)
+        model.load_state_dict(checkpoint['model'])
+
+        model.crop = checkpoint['args'].crop
+    model = model.eval()
+    return model
+
+def croco_flow(crocoflow, img1, img2, dim_indexing='b c h w'):
+    from croco.stereoflow.engine import tiled_pred
+    if dim_indexing != 'b c h w':
+        img1 = rearrange(img1, f'{dim_indexing} -> b c h w')
+        img2 = rearrange(img2, f'{dim_indexing} -> b c h w')
+    pred, _, c = tiled_pred(crocoflow, criterion=None, img1=img1, img2=img2, gt=None, overlap=0.9, crop=crocoflow.crop, with_conf=True)
+    return F.pad(pred, (0, 0, 0, 0, 0, 1), value=1) # pad: b 2 h w -> b 3 h w
 
 # def backward_warp(image, dy=None, dx=None, dxy=None, dyx=None, dim_indexing='b h w c', return_dict=False, return_tuple=False):
 #     """

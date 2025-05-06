@@ -68,6 +68,33 @@ from common.named_tensor import *
 
 from common.plt import PlotImage, plot_images, restore_mpl_for_jupyter, test_plt
 
+def describe(x):
+    if x is None:
+        return None
+    elif isinstance(x, str):
+        return x
+    elif isinstance(x, bool):
+        return x
+    elif isinstance(x, (int, float)):
+        return x
+    elif isinstance(x, dict):
+        return {k: describe(v) for k, v in x.items()}
+    elif isinstance(x, list):
+        return [describe(v) for v in x]
+    elif isinstance(x, tuple):
+        return tuple(describe(v) for v in x)
+    elif isinstance(x, torch.Tensor):
+        return f"Tensor(shape={x.shape},dtype={x.dtype},device={x.device},grad={x.requires_grad},names={x.names})"
+    elif isinstance(x, np.ndarray):
+        return f"ndarray(shape={x.shape},dtype={x.dtype})"
+    elif isinstance(x, nn.Parameter):
+        return repr(x)
+    elif isinstance(x, torch.nn.Module):
+        return repr(x)
+    else:
+        return repr(x)
+
+
 def to_tensor(x):
     if isinstance(x, torch.Tensor):
         return x
