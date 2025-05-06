@@ -20,14 +20,13 @@ dependencies = [
     "jaxtyping",
     "omegaconf",
     "IPython",
-    "gsplat",
     "plyfile",
 
     # use github version instead of pip version to enforce the compiling of cuda kernels during installation
     # add following to ~/.gitconfig to accelerate the repository cloning in China
     # [url "https://ghproxy.net/https://github.com/"]
     # insteadOf = https://github.com/
-    "git+https://github.com/nerfstudio-project/gsplat.git",
+    "gsplat @ git+https://github.com/nerfstudio-project/gsplat.git",
 ]
 
 [build-system]
