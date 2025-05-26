@@ -325,7 +325,7 @@ def croco_flow(crocoflow, img1, img2, dim_indexing='b c h w'):
     if dim_indexing != 'b c h w':
         img1 = rearrange(img1, f'{dim_indexing} -> b c h w')
         img2 = rearrange(img2, f'{dim_indexing} -> b c h w')
-    pred, _, c = tiled_pred(crocoflow, criterion=None, img1=img1, img2=img2, gt=None, overlap=0.9, crop=crocoflow.crop, with_conf=True)
+    pred, _, c = tiled_pred(crocoflow, criterion=None, img1=img1, img2=img2, gt=None, overlap=0.5, crop=crocoflow.crop, with_conf=True)
     return F.pad(pred, (0, 0, 0, 0, 0, 1), value=1) # pad: b 2 h w -> b 3 h w
 
 # def backward_warp(image, dy=None, dx=None, dxy=None, dyx=None, dim_indexing='b h w c', return_dict=False, return_tuple=False):
